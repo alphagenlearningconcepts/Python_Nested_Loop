@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Nested Loops - Alphagen Learning</title>
+  
+  <!-- Google Fonts: Poppins for Alphagen Brand & Fira Code for Python code blocks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              purple: '#5E48C4',
+              'purple-dark': '#4A3AAD',
+              'purple-mid': '#7B6ED4',
+              'purple-pale': '#EAE7FE',
+              'purple-ghost': '#F5F4FF',
+              yellow: '#FFD071',
+              'yellow-dark': '#E6B84A',
+              'yellow-pale': '#FFF3CC',
+              'near-black': '#1A1A1A',
+              'dark-grey': '#404048',
+              'mid-grey': '#888896',
+              'light-grey': '#F2F2F4',
+              cyan: '#59E4FB',
+              'cyan-dark': '#055F6E',
+              'cyan-pale': '#E0FAFE',
+              coral: '#ED5661',
+              'coral-dark': '#993040',
+              'coral-pale': '#FFF0F1'
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            code: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #F5F4FF;
+      color: #1A1A1A;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .slide-stage {
+      width: 100%;
+      max-width: 1140px;
+      min-height: 640px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Slide Panels */
+    .slide-panel {
+      display: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .slide-panel.active {
+      display: flex !important;
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+
+    /* Custom Chessboard Styling */
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      border: 4px solid #4A3AAD;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(94, 72, 196, 0.15);
+    }
+    .chess-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .chess-cell.light { background-color: #EAE7FE; color: #5E48C4; }
+    .chess-cell.dark { background-color: #7B6ED4; color: #ffffff; }
+    .chess-cell.counted {
+      background-color: #FFD071 !important;
+      color: #1A1A1A !important;
+      transform: scale(0.92);
+      font-weight: 800;
+    }
+
+    /* Lego Block Styling */
+    .lego-outer {
+      background: #5E48C4;
+      border: 3px solid #4A3AAD;
+      border-radius: 20px;
+      padding: 16px;
+      position: relative;
+      box-shadow: 0 8px 0px #4A3AAD;
+    }
+    .lego-inner {
+      background: #FFD071;
+      border: 3px solid #E6B84A;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 6px 0px #E6B84A;
+    }
+
+    /* Tracing Grid Light Effect */
+    .trace-cell {
+      width: 38px;
+      height: 38px;
+      border: 2px solid #EAE7FE;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      background: white;
+      transition: all 0.2s ease;
+    }
+    .trace-cell.active-inner {
+      background: #FFD071 !important;
+      border-color: #E6B84A !important;
+      color: #1A1A1A !important;
+      transform: scale(1.1);
+      box-shadow: 0 0 12px rgba(255, 208, 113, 0.8);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 md:p-6 bg-brand-purple-ghost text-brand-near-black">
+
+  <header class="w-full max-w-6xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 bg-white border-2 border-brand-purple-pale p-4 md:p-5 rounded-2xl shadow-sm">
+    <div class="flex items-center gap-3.5">
+      <div class="bg-brand-purple text-white p-3.5 rounded-2xl font-extrabold text-2xl flex items-center justify-center shadow-md">
+        <i class="fa-solid fa-arrows-spin"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-xl md:text-2xl text-brand-purple tracking-tight">Python Nested Loops</h1>
+        <p class="text-xs md:text-sm text-brand-dark-grey font-medium">Alphagen Learning Interactive Module</p>
+      </div>
+    </div>
+
+    <!-- Progress Controls -->
+    <div class="flex items-center gap-3.5">
+      <div class="hidden md:flex items-center gap-2" id="dots-container">
+        <!-- Generated via JS -->
+      </div>
+      <div class="bg-brand-purple-pale border border-brand-purple-mid/30 px-4 py-2 rounded-xl font-bold text-brand-purple text-base">
+        Slide <span id="current-slide-num">1</span> / <span id="total-slides-num">9</span>
+      </div>
+      <select id="jump-menu" onchange="goToSlide(parseInt(this.value))" class="bg-brand-purple-ghost text-brand-purple border-2 border-brand-purple-pale rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-brand-purple cursor-pointer">
+        <!-- Generated via JS -->
+      </select>
+      <button id="sound-toggle" onclick="toggleSound()" class="bg-brand-purple-ghost hover:bg-brand-purple-pale text-brand-purple p-3 rounded-xl transition-all border border-brand-purple-pale" title="Toggle Sound">
+        <i class="fa-solid fa-volume-high text-xl" id="sound-icon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="w-full flex-grow flex items-center justify-center">
+    <div class="slide-stage w-full bg-white border-2 border-brand-purple-pale rounded-3xl shadow-xl p-6 md:p-9 flex flex-col justify-between overflow-hidden relative">
+
+      <!-- ================= SLIDE 1: Title Slide ================= -->
+      <div class="slide-panel active flex-col justify-center items-center text-center h-full gap-7 my-auto" id="slide-1">
+        <div class="inline-block bg-brand-purple-pale text-brand-purple px-6 py-2.5 rounded-full text-base md:text-lg font-bold tracking-wide uppercase shadow-sm">
+          Interactive Coding Lesson
+        </div>
+        
+        <h1 class="font-extrabold text-5xl sm:text-6xl md:text-7xl text-brand-near-black leading-tight max-w-4xl">
+          What are <span class="text-brand-purple underline decoration-brand-yellow decoration-wavy underline-offset-8">Nested Loops</span>?
+        </h1>
+
+        <button onclick="nextSlide()" class="mt-4 bg-brand-yellow hover:bg-brand-yellow-dark text-brand-near-black font-extrabold text-2xl md:text-3xl px-12 py-5 rounded-2xl shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-4 cursor-pointer">
+          <span>Start Exploring!</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- ================= SLIDE 2: Chessboard Analogy ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-2">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Real-Life Analogy</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Counting Chessboard Squares ♟️</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Left: Interactive Chessboard -->
+            <div class="md:col-span-5 bg-brand-purple-ghost border-2 border-brand-purple-pale p-5 rounded-3xl flex flex-col items-center">
+              <div class="chess-board mb-3" id="chessboard-grid">
+                <!-- Generated via JS -->
+              </div>
+              <div class="text-center font-bold text-brand-purple text-base">
+                Counted Squares: <span id="chess-count-num" class="text-brand-yellow-dark text-xl font-extrabold">0</span> / 64
+              </div>
+            </div>
+
+            <!-- Right: Strategy Choices -->
+            <div class="md:col-span-7 flex flex-col gap-3.5">
+              <p class="font-bold text-lg md:text-xl text-brand-near-black">
+                How many total squares are on this chessboard, and how do you count them?
+              </p>
+
+              <button onclick="selectChessStrategy(this, 'individual')" class="chess-opt-btn bg-brand-purple-ghost hover:bg-brand-purple-pale border-2 border-brand-purple-pale p-4 rounded-2xl text-left font-bold text-base md:text-lg text-brand-near-black transition-all flex items-center justify-between cursor-pointer">
+                <span>1. Count square by square individually (1, 2, 3...)</span>
+                <i class="fa-regular fa-circle text-brand-mid-grey text-xl status-icon"></i>
+              </button>
+
+              <button onclick="selectChessStrategy(this, 'rows_cols')" class="chess-opt-btn bg-brand-purple-ghost hover:bg-brand-purple-pale border-2 border-brand-purple-pale p-4 rounded-2xl text-left font-bold text-base md:text-lg text-brand-near-black transition-all flex items-center justify-between cursor-pointer">
+                <span>2. Multiply Rows (8) × Columns (8) = 64 squares!</span>
+                <i class="fa-regular fa-circle text-brand-mid-grey text-xl status-icon"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="chessboard-explanation" class="mt-3 p-4 rounded-2xl bg-brand-purple-pale border border-brand-purple-mid/30 text-brand-purple font-bold text-base md:text-lg text-center">
+          💡 Select a strategy above to see how computers process rows and columns!
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 3: Lego Block & Tracing ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-3">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Core Concept</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">What is a Nested Loop? 🧱</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Left: Lego Analogy Visual -->
+            <div class="md:col-span-5 bg-brand-purple-ghost border-2 border-brand-purple-pale p-5 rounded-3xl">
+              <div class="lego-outer text-white mb-3">
+                <div class="font-extrabold text-sm mb-2 uppercase tracking-wide flex items-center justify-between">
+                  <span>OUTER LOOP (Rows)</span>
+                  <span id="outer-loop-badge" class="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-code">row = 0</span>
+                </div>
+
+                <div class="lego-inner text-brand-near-black">
+                  <div class="font-extrabold text-xs uppercase tracking-wide mb-1 text-brand-purple-dark flex justify-between items-center">
+                    <span>INNER LOOP (Columns)</span>
+                    <span id="inner-loop-badge" class="bg-brand-purple text-white px-2 py-0.5 rounded-full text-xs font-code">col = 0</span>
+                  </div>
+                  <p class="text-xs font-bold text-brand-near-black mt-1">
+                    Runs COMPLETELY across all columns (0 ➔ 1 ➔ 2) for EVERY single row!
+                  </p>
+                </div>
+              </div>
+
+              <div class="bg-white border border-brand-purple-pale p-3 rounded-2xl text-center text-xs text-brand-dark-grey font-bold shadow-sm">
+                Like fixing a Lego block inside another Lego block!
+              </div>
+            </div>
+
+            <!-- Right: Left-to-Right Row Tracing Grid -->
+            <div class="md:col-span-7 bg-slate-900 border-2 border-slate-700 p-5 rounded-3xl text-white flex flex-col justify-between min-h-[270px]">
+              <div>
+                <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
+                  <span class="font-code text-brand-yellow font-bold text-sm">Execution Light Tracer</span>
+                  <span id="trace-status-text" class="text-xs font-code text-brand-cyan">Ready to trace left-to-right!</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-2 my-2" id="trace-grid-wrapper">
+                  <div class="flex items-center gap-3 ml-12">
+                    <span id="col-head-0" class="w-9 text-center font-code text-xs text-slate-400 font-bold">Col 0</span>
+                    <span id="col-head-1" class="w-9 text-center font-code text-xs text-slate-400 font-bold">Col 1</span>
+                    <span id="col-head-2" class="w-9 text-center font-code text-xs text-slate-400 font-bold">Col 2</span>
+                  </div>
+
+                  <div class="flex flex-col gap-2" id="trace-grid-container">
+                    <!-- Generated via JS -->
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <p class="text-xs text-slate-400 font-sans">
+                  Watch the yellow light step through columns (left-to-right) for each row!
+                </p>
+                <button onclick="startLightTraceAnimation()" class="bg-brand-yellow hover:bg-brand-yellow-dark text-brand-near-black font-extrabold text-sm px-5 py-2.5 rounded-xl transition shadow flex items-center gap-2 cursor-pointer">
+                  <i class="fa-solid fa-play"></i> Trace Execution ▶
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-brand-yellow-pale border-2 border-brand-yellow-dark/40 p-3.5 rounded-2xl flex items-center gap-3 text-brand-near-black font-bold text-sm md:text-base">
+          <i class="fa-solid fa-lightbulb text-brand-yellow-dark text-2xl"></i>
+          <span>RULE: For every 1 row turn of Outer Loop, Inner Loop completes ALL column turns left-to-right!</span>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 4: Printing Square Simulator ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-4">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Interactive Playground</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Print a Square Pattern 🔲</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+            <div class="md:col-span-6 bg-brand-purple-ghost border-2 border-brand-purple-pale p-5 rounded-3xl flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="bg-white border border-brand-purple-pale p-3 rounded-2xl">
+                  <div class="text-xs font-bold text-brand-purple uppercase">Role Breakdown</div>
+                  <ul class="text-xs text-brand-dark-grey space-y-1 mt-1 font-medium">
+                    <li>• <strong>Outer Loop:</strong> Counts rows (vertical lines)</li>
+                    <li>• <strong>Inner Loop:</strong> Counts columns & prints symbol horizontally</li>
+                    <li>• <strong><code class="text-brand-purple font-code">print()</code> after inner loop:</strong> Moves to the NEXT line!</li>
+                  </ul>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs font-bold text-brand-purple">Rows (Outer Loop):</label>
+                    <input type="number" id="square-rows-input" value="4" min="1" max="8" onchange="updateSquareSimulation()" class="w-full bg-white border-2 border-brand-purple-pale rounded-xl px-3 py-1.5 font-bold font-code text-brand-purple text-base focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="text-xs font-bold text-brand-purple">Cols (Inner Loop):</label>
+                    <input type="number" id="square-cols-input" value="4" min="1" max="8" onchange="updateSquareSimulation()" class="w-full bg-white border-2 border-brand-purple-pale rounded-xl px-3 py-1.5 font-bold font-code text-brand-purple text-base focus:outline-none">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs font-bold text-brand-purple">Pick Symbol:</label>
+                  <div class="flex gap-2 mt-1">
+                    <button onclick="setSquareSymbol('⭐')" class="symbol-btn bg-white border-2 border-brand-purple px-3 py-1 rounded-xl text-lg font-bold cursor-pointer">⭐</button>
+                    <button onclick="setSquareSymbol('🤖')" class="symbol-btn bg-white border-2 border-brand-purple-pale px-3 py-1 rounded-xl text-lg font-bold cursor-pointer">🤖</button>
+                    <button onclick="setSquareSymbol('❤️')" class="symbol-btn bg-white border-2 border-brand-purple-pale px-3 py-1 rounded-xl text-lg font-bold cursor-pointer">❤️</button>
+                    <button onclick="setSquareSymbol('🧱')" class="symbol-btn bg-white border-2 border-brand-purple-pale px-3 py-1 rounded-xl text-lg font-bold cursor-pointer">🧱</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="font-code text-xs bg-slate-900 text-emerald-400 p-3 rounded-2xl mt-2">
+                for row in range(<span id="code-row-val" class="text-brand-yellow">4</span>):<br>
+                &nbsp;&nbsp;for col in range(<span id="code-col-val" class="text-brand-yellow">4</span>):<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;print("<span id="code-sym-val" class="text-brand-yellow">⭐</span>", end=" ")<br>
+                &nbsp;&nbsp;print() <span class="text-slate-500"># Moves to next line</span>
+              </div>
+            </div>
+
+            <div class="md:col-span-6 bg-black border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-between font-code shadow-md">
+              <div>
+                <div class="text-xs text-emerald-400 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center justify-between">
+                  <span><i class="fa-solid fa-terminal mr-2"></i> Python Screen Output</span>
+                  <span class="text-slate-400 font-normal text-xs" id="square-dim-label">4 x 4 Grid</span>
+                </div>
+                <div id="square-terminal-output" class="text-xl md:text-2xl text-brand-yellow font-bold leading-relaxed whitespace-pre font-code pt-2 min-h-[140px]">
+                  <!-- Generated via JS -->
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 italic">Notice how print() after the inner loop pushes output down!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-brand-purple-pale border border-brand-purple-mid/30 p-3.5 rounded-2xl text-center font-bold text-sm md:text-base text-brand-purple">
+          💡 Change the row and column numbers above to transform your square into a rectangle!
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 5: Sandbox Challenge 1 ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-5">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Sandbox Challenge</span>
+              <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Build Squares in Your Sandbox! 🚀</h2>
+            </div>
+            <div class="bg-brand-yellow-pale border border-brand-yellow-dark/40 px-4 py-2 rounded-xl text-brand-near-black font-bold text-base">
+              Progress: <span id="c1-progress-num" class="text-brand-purple font-extrabold text-xl">0</span> / 3
+            </div>
+          </div>
+
+          <div class="bg-brand-purple text-white px-5 py-3 rounded-2xl font-bold text-base mb-3 flex items-center gap-3">
+            <i class="fa-solid fa-laptop-code text-brand-yellow text-2xl"></i>
+            <span>Open your <strong>Python Sandbox / IDE</strong> and complete these 3 shape activities!</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Task 1 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div class="font-extrabold text-base text-brand-purple mb-1">1. 5x5 Emoji Square 🤖</div>
+                <p class="text-xs text-brand-dark-grey mb-3 font-medium leading-relaxed">
+                  Open your sandbox and write a program to print a 5x5 square pattern using your favorite emoji symbol.
+                </p>
+              </div>
+              <button onclick="testSandboxSquareTask(this, 1)" class="c1-square-btn bg-brand-purple hover:bg-brand-purple-dark text-white font-bold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>Completed in Sandbox!</span>
+                <i class="fa-regular fa-circle text-lg status-icon"></i>
+              </button>
+            </div>
+
+            <!-- Task 2 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div class="font-extrabold text-base text-brand-purple mb-1">2. Dollar Pattern $</div>
+                <p class="text-xs text-brand-dark-grey mb-3 font-medium leading-relaxed">
+                  Write code in your sandbox that takes the number of rows and columns as input, then prints a shape using the $ symbol.
+                </p>
+              </div>
+              <button onclick="testSandboxSquareTask(this, 2)" class="c1-square-btn bg-brand-purple hover:bg-brand-purple-dark text-white font-bold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>Completed in Sandbox!</span>
+                <i class="fa-regular fa-circle text-lg status-icon"></i>
+              </button>
+            </div>
+
+            <!-- Task 3 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl flex flex-col justify-between">
+              <div>
+                <div class="font-extrabold text-base text-brand-purple mb-1">3. Fully Custom Shape ✨</div>
+                <p class="text-xs text-brand-dark-grey mb-3 font-medium leading-relaxed">
+                  Write a program in your sandbox that takes inputs for rows, columns AND a custom symbol, then prints the customized shape!
+                </p>
+              </div>
+              <button onclick="testSandboxSquareTask(this, 3)" class="c1-square-btn bg-brand-purple hover:bg-brand-purple-dark text-white font-bold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <span>Completed in Sandbox!</span>
+                <i class="fa-regular fa-circle text-lg status-icon"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="sandbox-square-feedback" class="mt-3 p-3.5 rounded-2xl bg-brand-purple-pale border border-brand-purple-mid/30 text-center font-bold text-base text-brand-purple">
+          Write each program in your Python Sandbox, then check off each item!
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 6: Triangle Concept ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-6">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Pattern Discovery</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Printing Right-Angled Triangles 📐</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+            <div class="md:col-span-5 bg-black border-2 border-slate-800 rounded-3xl p-5 flex flex-col justify-between shadow-md">
+              <div>
+                <div class="text-xs text-emerald-400 font-bold mb-2 flex justify-between items-center border-b border-slate-800 pb-2">
+                  <span><i class="fa-solid fa-terminal mr-2"></i> Triangle Output</span>
+                  <span id="tri-status-badge" class="text-brand-yellow font-code">Height: 4</span>
+                </div>
+                <div id="triangle-terminal-output" class="font-code text-2xl font-bold text-brand-yellow leading-relaxed min-h-[140px] pt-1 whitespace-pre">
+                  ⭐<br>⭐ ⭐<br>⭐ ⭐ ⭐<br>⭐ ⭐ ⭐ ⭐
+                </div>
+              </div>
+              
+              <button onclick="traceTriangleRowStep()" class="mt-3 bg-brand-yellow hover:bg-brand-yellow-dark text-brand-near-black font-extrabold text-sm py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-play"></i> Trace Row-by-Row ▶
+              </button>
+            </div>
+
+            <div class="md:col-span-7 space-y-3 flex flex-col justify-between">
+              <div class="space-y-2">
+                <p class="font-bold text-base text-brand-near-black">
+                  Notice the key pattern in a right triangle:
+                </p>
+
+                <div class="bg-white border border-brand-purple-pale p-3 rounded-2xl space-y-1.5">
+                  <div class="flex items-center gap-2 text-xs font-bold text-brand-purple">
+                    <i class="fa-solid fa-arrow-right text-brand-yellow-dark"></i>
+                    <span>Row 1 (row=1) ➔ prints 1 star (col=1)</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs font-bold text-brand-purple">
+                    <i class="fa-solid fa-arrow-right text-brand-yellow-dark"></i>
+                    <span>Row 2 (row=2) ➔ prints 2 stars (col=1, col=2)</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs font-bold text-brand-purple">
+                    <i class="fa-solid fa-arrow-right text-brand-yellow-dark"></i>
+                    <span>Inner loop upper bound depends on current row number!</span>
+                  </div>
+                </div>
+
+                <div class="bg-brand-purple-ghost border border-brand-purple-pale p-3.5 rounded-2xl">
+                  <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-bold text-brand-purple">Triangle Height (Rows):</label>
+                    <span id="tri-height-num" class="font-code font-bold text-brand-purple text-base">4</span>
+                  </div>
+                  <input type="range" id="tri-height-slider" min="2" max="6" value="4" oninput="updateTriangleSimulation()" class="w-full accent-brand-purple cursor-pointer">
+                </div>
+              </div>
+
+              <div class="font-code text-xs bg-slate-900 text-emerald-400 p-3 rounded-2xl">
+                for row in range(1, <span id="code-tri-h" class="text-brand-yellow">5</span>):<br>
+                &nbsp;&nbsp;for col in range(<span class="text-brand-yellow">row</span>): <span class="text-slate-400"># Inner loop relies on outer row!</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;print("⭐", end=" ")<br>
+                &nbsp;&nbsp;print()
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-brand-yellow-pale border-2 border-brand-yellow-dark/40 p-3.5 rounded-2xl flex items-center gap-3 text-brand-near-black font-bold text-sm md:text-base">
+          <i class="fa-solid fa-bolt text-brand-yellow-dark text-2xl"></i>
+          <span>GOLDEN RULE: Pass <code class="bg-white px-2 py-0.5 rounded text-brand-purple font-code">row</code> into the inner loop range so it grows on every line!</span>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 7: Inverted Triangle Activity ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-7">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Brainstorming Activity</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Inverted Star Triangle 🔻</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+            <div class="md:col-span-5 bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-3xl flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold text-brand-purple uppercase">Target Sandbox Output:</span>
+                <div class="font-code text-xl font-bold text-brand-purple bg-white border border-brand-purple-pale p-3 rounded-2xl mt-2 leading-relaxed">
+                  ⭐ ⭐ ⭐ ⭐ ⭐<br>
+                  ⭐ ⭐ ⭐ ⭐<br>
+                  ⭐ ⭐ ⭐<br>
+                  ⭐ ⭐<br>
+                  ⭐
+                </div>
+              </div>
+              <p class="text-xs text-brand-dark-grey font-bold mt-2">
+                Think carefully about how the outer loop starts large and decreases!
+              </p>
+            </div>
+
+            <div class="md:col-span-7 space-y-3">
+              <div class="bg-white border-2 border-brand-purple-pale p-3.5 rounded-2xl">
+                <div class="text-xs font-bold text-brand-purple uppercase mb-1">Question 1:</div>
+                <p class="text-sm font-bold text-brand-near-black mb-2">How many total rows are in this inverted triangle?</p>
+                <div class="flex gap-2">
+                  <button onclick="checkBrainstormTri1(this, false)" class="bt1-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">3 Rows</button>
+                  <button onclick="checkBrainstormTri1(this, true)" class="bt1-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">5 Rows</button>
+                  <button onclick="checkBrainstormTri1(this, false)" class="bt1-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">8 Rows</button>
+                </div>
+              </div>
+
+              <div class="bg-white border-2 border-brand-purple-pale p-3.5 rounded-2xl">
+                <div class="text-xs font-bold text-brand-purple uppercase mb-1">Question 2:</div>
+                <p class="text-sm font-bold text-brand-near-black mb-2">What does the first row start with?</p>
+                <div class="flex gap-2">
+                  <button onclick="checkBrainstormTri2(this, false)" class="bt2-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">1 Star</button>
+                  <button onclick="checkBrainstormTri2(this, true)" class="bt2-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">5 Stars</button>
+                </div>
+              </div>
+
+              <div class="bg-white border-2 border-brand-purple-pale p-3.5 rounded-2xl">
+                <div class="text-xs font-bold text-brand-purple uppercase mb-1">Question 3:</div>
+                <p class="text-sm font-bold text-brand-near-black mb-2">How should the outer loop count range move?</p>
+                <div class="flex gap-2">
+                  <button onclick="checkBrainstormTri3(this, true)" class="bt3-opt bg-brand-purple-ghost border border-brand-purple-pale px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">range(5, 0, -1)</button>
+                  <button onclick="checkBrainstormTri3(this, false)" class="bt3-opt bg-brand-purple-ghost border border-brand-purple-pale px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">range(1, 5)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="inverted-sandbox-banner" class="mt-3 p-3.5 bg-brand-purple-pale border border-brand-purple-mid/30 rounded-2xl flex items-center justify-between gap-3">
+          <span class="font-bold text-sm md:text-base text-brand-purple">Answer questions above, then write code in your Sandbox!</span>
+          <button onclick="confirmInvertedSandboxDone()" class="bg-brand-purple hover:bg-brand-purple-dark text-white px-5 py-2 rounded-xl text-sm font-bold shadow transition cursor-pointer">
+            Completed in Sandbox! ✅
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 8: Number Triangle Activity ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-8">
+        <div>
+          <div class="mb-3">
+            <span class="text-brand-purple font-bold text-sm uppercase tracking-wider">Number Pattern Challenge</span>
+            <h2 class="text-3xl md:text-4xl text-brand-near-black font-bold">Print a Number Triangle 🔢</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+            <div class="md:col-span-5 bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-3xl flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold text-brand-purple uppercase">Target Sandbox Output:</span>
+                <div class="font-code text-xl font-bold text-brand-purple bg-white border border-brand-purple-pale p-4 rounded-2xl mt-2 leading-relaxed">
+                  1<br>
+                  1 2<br>
+                  1 2 3<br>
+                  1 2 3 4<br>
+                  1 2 3 4 5
+                </div>
+              </div>
+              <p class="text-xs text-brand-dark-grey font-bold mt-2">
+                Notice: Instead of printing a star symbol, print the loop counter variable!
+              </p>
+            </div>
+
+            <div class="md:col-span-7 space-y-3">
+              <div class="bg-white border-2 border-brand-purple-pale p-3.5 rounded-2xl">
+                <div class="text-xs font-bold text-brand-purple uppercase mb-1">Brainstorm Q1:</div>
+                <p class="text-sm font-bold text-brand-near-black mb-2">How many rows and max columns are printed?</p>
+                <div class="flex gap-2">
+                  <button onclick="checkNumBrainstorm1(this, true)" class="nb1-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">5 Rows & 5 Cols</button>
+                  <button onclick="checkNumBrainstorm1(this, false)" class="nb1-opt bg-brand-purple-ghost border border-brand-purple-pale px-4 py-1.5 rounded-xl font-bold text-sm cursor-pointer">3 Rows & 3 Cols</button>
+                </div>
+              </div>
+
+              <div class="bg-white border-2 border-brand-purple-pale p-3.5 rounded-2xl">
+                <div class="text-xs font-bold text-brand-purple uppercase mb-1">Brainstorm Q2:</div>
+                <p class="text-sm font-bold text-brand-near-black mb-2">What variable value should be printed inside the inner loop?</p>
+                <div class="flex gap-2">
+                  <button onclick="checkNumBrainstorm2(this, true)" class="nb2-opt bg-brand-purple-ghost border border-brand-purple-pale px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">Inner Column Counter (col)</button>
+                  <button onclick="checkNumBrainstorm2(this, false)" class="nb2-opt bg-brand-purple-ghost border border-brand-purple-pale px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">Outer Row Counter (row)</button>
+                </div>
+              </div>
+
+              <div class="font-code text-xs bg-slate-900 text-emerald-400 p-3 rounded-2xl">
+                for r in range(1, 6):<br>
+                &nbsp;&nbsp;for c in range(1, r + 1):<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;print(c, end=" ")<br>
+                &nbsp;&nbsp;print()
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="number-tri-banner" class="mt-3 p-3.5 bg-brand-purple-pale border border-brand-purple-mid/30 rounded-2xl flex items-center justify-between gap-3">
+          <span class="font-bold text-sm md:text-base text-brand-purple">Code this number triangle in your Sandbox now!</span>
+          <button onclick="confirmNumTriangleDone()" class="bg-brand-purple hover:bg-brand-purple-dark text-white px-5 py-2 rounded-xl text-sm font-bold shadow transition cursor-pointer">
+            Completed in Sandbox! ✅
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 9: Final Revision Quiz ================= -->
+      <div class="slide-panel flex-col h-full justify-between" id="slide-9">
+        <div>
+          <div class="mb-3 text-center">
+            <span class="bg-brand-yellow text-brand-near-black px-5 py-1.5 rounded-full font-extrabold text-xs md:text-sm uppercase tracking-widest inline-block mb-1">
+              Final Concept Revision
+            </span>
+            <h2 class="text-3xl md:text-5xl text-brand-purple font-extrabold">Mastery Quiz! 🏆</h2>
+            <p class="text-base text-brand-dark-grey mt-1">Answer all revision questions to complete the lesson:</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Q1 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl">
+              <div class="text-xs font-bold text-brand-purple uppercase mb-1">1. Outer Loop Role</div>
+              <p class="text-sm font-bold text-brand-near-black mb-2">What does the outer loop control in shapes?</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="checkFinalRevision(1, true, this)" class="fq1-opt bg-white border border-brand-purple-pale p-2 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">Number of Rows</button>
+                <button onclick="checkFinalRevision(1, false, this)" class="fq1-opt bg-white border border-brand-purple-pale p-2 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">Color of text</button>
+              </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl">
+              <div class="text-xs font-bold text-brand-purple uppercase mb-1">2. Inner Loop Role</div>
+              <p class="text-sm font-bold text-brand-near-black mb-2">What does the inner loop control?</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="checkFinalRevision(2, true, this)" class="fq2-opt bg-white border border-brand-purple-pale p-2 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">Columns across row</button>
+                <button onclick="checkFinalRevision(2, false, this)" class="fq2-opt bg-white border border-brand-purple-pale p-2 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">Font size</button>
+              </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="bg-brand-purple-ghost border-2 border-brand-purple-pale p-4 rounded-2xl col-span-1 md:col-span-2">
+              <div class="text-xs font-bold text-brand-purple uppercase mb-1">3. Line Break Role</div>
+              <p class="text-sm font-bold text-brand-near-black mb-2">Why do we write <code class="font-code text-brand-purple">print()</code> after the inner loop finishes?</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="checkFinalRevision(3, true, this)" class="fq3-opt bg-white border border-brand-purple-pale p-2.5 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">To move output cursor to the NEXT line</button>
+                <button onclick="checkFinalRevision(3, false, this)" class="fq3-opt bg-white border border-brand-purple-pale p-2.5 rounded-xl text-xs font-bold text-brand-near-black cursor-pointer">To delete the previous row</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="final-mastery-banner" class="bg-brand-yellow text-brand-near-black p-4.5 rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-3 px-6">
+          <span class="font-extrabold text-base md:text-xl" id="final-banner-text">Answer all questions above to celebrate!</span>
+          <button onclick="triggerConfetti()" class="bg-brand-purple hover:bg-brand-purple-dark text-white px-6 py-2.5 rounded-xl text-base font-extrabold shadow transition-all cursor-pointer">
+            Celebrate & Finish! 🚀
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="w-full max-w-6xl mx-auto mt-4 flex items-center justify-between gap-4">
+    <button id="prev-btn" onclick="prevSlide()" class="bg-white hover:bg-brand-purple-pale border-2 border-brand-purple-pale text-brand-purple px-7 py-3.5 rounded-2xl font-extrabold text-lg flex items-center gap-2.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm cursor-pointer">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Previous</span>
+    </button>
+
+    <div class="hidden md:flex items-center gap-2 text-base text-brand-dark-grey font-semibold">
+      <span>Use Arrow Keys ⬅️ ➡️ to change slides</span>
+    </div>
+
+    <button id="next-btn" onclick="nextSlide()" class="bg-brand-yellow hover:bg-brand-yellow-dark text-brand-near-black px-7 py-3.5 rounded-2xl font-extrabold text-lg flex items-center gap-2.5 shadow-md transition-all cursor-pointer">
+      <span>Next</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </footer>
+
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 9;
+    let soundEnabled = true;
+
+    /* Safe Web Audio Context Singleton */
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        try {
+          const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtxClass) {
+            audioCtx = new AudioCtxClass();
+          }
+        } catch (e) {
+          console.warn("AudioContext not supported or restricted:", e);
+        }
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        } else if (type === 'pop') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(400, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08);
+        }
+      } catch (e) {
+        console.warn("Sound play exception", e);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('sound-icon');
+      if (icon) {
+        icon.className = soundEnabled ? 'fa-solid fa-volume-high text-xl' : 'fa-solid fa-volume-xmark text-xl';
+      }
+    }
+
+    function initNavigation() {
+      const dotsContainer = document.getElementById('dots-container');
+      const jumpMenu = document.getElementById('jump-menu');
+      if (dotsContainer) dotsContainer.innerHTML = '';
+      if (jumpMenu) jumpMenu.innerHTML = '';
+
+      const slideTitles = [
+        "1. Title", "2. Chessboard Analogy", "3. Nested Loop Tracing", "4. Square Simulator",
+        "5. Sandbox Squares", "6. Triangle Concept", "7. Inverted Triangle", "8. Number Triangle", "9. Final Quiz"
+      ];
+
+      for (let i = 1; i <= totalSlides; i++) {
+        if (dotsContainer) {
+          const dot = document.createElement('button');
+          dot.className = `w-3 h-3 rounded-full transition-all cursor-pointer ${i === 1 ? 'bg-brand-purple w-7' : 'bg-brand-purple-pale hover:bg-brand-purple-mid'}`;
+          dot.onclick = () => goToSlide(i);
+          dot.title = `Slide ${i}`;
+          dot.id = `dot-${i}`;
+          dotsContainer.appendChild(dot);
+        }
+
+        if (jumpMenu) {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.innerText = slideTitles[i - 1] || `Slide ${i}`;
+          jumpMenu.appendChild(opt);
+        }
+      }
+    }
+
+    function updateSlideDisplay() {
+      for (let i = 1; i <= totalSlides; i++) {
+        const panel = document.getElementById(`slide-${i}`);
+        if (panel) {
+          if (i === currentSlide) {
+            panel.classList.add('active');
+            panel.style.display = 'flex';
+          } else {
+            panel.classList.remove('active');
+            panel.style.display = 'none';
+          }
+        }
+      }
+
+      const currentNumEl = document.getElementById('current-slide-num');
+      if (currentNumEl) currentNumEl.innerText = currentSlide;
+
+      const totalNumEl = document.getElementById('total-slides-num');
+      if (totalNumEl) totalNumEl.innerText = totalSlides;
+
+      const jumpMenu = document.getElementById('jump-menu');
+      if (jumpMenu) jumpMenu.value = currentSlide;
+
+      for (let i = 1; i <= totalSlides; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) {
+          dot.className = (i === currentSlide) ? 'w-7 h-3 rounded-full bg-brand-purple transition-all' : 'w-3 h-3 rounded-full bg-brand-purple-pale hover:bg-brand-purple-mid transition-all';
+        }
+      }
+
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (prevBtn) prevBtn.disabled = (currentSlide === 1);
+
+      if (nextBtn) {
+        if (currentSlide === totalSlides) {
+          nextBtn.innerHTML = `<span>Finish</span> <i class="fa-solid fa-flag-checkered"></i>`;
+        } else {
+          nextBtn.innerHTML = `<span>Next</span> <i class="fa-solid fa-arrow-right"></i>`;
+        }
+      }
+
+      if (currentSlide === totalSlides) {
+        triggerConfetti();
+      }
+    }
+
+    function goToSlide(slideNum) {
+      if (typeof slideNum !== 'number' || isNaN(slideNum)) {
+        slideNum = parseInt(slideNum, 10);
+      }
+      if (slideNum >= 1 && slideNum <= totalSlides) {
+        currentSlide = slideNum;
+        playSound('pop');
+        updateSlideDisplay();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) goToSlide(currentSlide - 1);
+    }
+
+    /* Slide 2: Chessboard Strategy */
+    function initChessboard() {
+      const grid = document.getElementById('chessboard-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cell = document.createElement('div');
+          const isLight = (r + c) % 2 === 0;
+          cell.className = `chess-cell ${isLight ? 'light' : 'dark'}`;
+          cell.id = `cell-${r}-${c}`;
+          cell.innerText = '';
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    let chessInterval = null;
+    function selectChessStrategy(btn, strategy) {
+      if (chessInterval) clearInterval(chessInterval);
+      const explanation = document.getElementById('chessboard-explanation');
+      document.querySelectorAll('.chess-opt-btn').forEach(b => {
+        b.classList.remove('!bg-brand-purple', '!text-white', '!border-brand-purple-dark', '!bg-emerald-600');
+      });
+
+      // Reset cells
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cell = document.getElementById(`cell-${r}-${c}`);
+          if (cell) {
+            cell.className = `chess-cell ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+            cell.innerText = '';
+          }
+        }
+      }
+
+      if (strategy === 'individual') {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-purple', '!text-white');
+        if (explanation) {
+          explanation.className = "mt-3 p-4 rounded-2xl bg-brand-yellow-pale border border-brand-yellow-dark/40 text-brand-near-black font-bold text-base text-center";
+          explanation.innerHTML = `<i class="fa-solid fa-clock text-brand-yellow-dark text-xl mr-2"></i> Counting square by square took 64 individual steps! That took a long time!`;
+        }
+        
+        let count = 0;
+        chessInterval = setInterval(() => {
+          const r = Math.floor(count / 8);
+          const c = count % 8;
+          const cell = document.getElementById(`cell-${r}-${c}`);
+          if (cell) {
+            cell.classList.add('counted');
+            cell.innerText = `${count + 1}`;
+          }
+          count++;
+          const countNum = document.getElementById('chess-count-num');
+          if (countNum) countNum.innerText = count;
+          if (count >= 64) clearInterval(chessInterval);
+        }, 35);
+      } else {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+        if (explanation) {
+          explanation.className = "mt-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 font-bold text-base text-center";
+          explanation.innerHTML = `<i class="fa-solid fa-bolt text-emerald-600 text-xl mr-2"></i> SUPER FAST! Rows (8) × Columns (8) moved row-by-row in bursts! This is how <strong>Nested Loops</strong> work!`;
+        }
+
+        let r = 0;
+        chessInterval = setInterval(() => {
+          for (let c = 0; c < 8; c++) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) {
+              cell.classList.add('counted');
+              cell.innerText = `${r * 8 + c + 1}`;
+            }
+          }
+          r++;
+          const countNum = document.getElementById('chess-count-num');
+          if (countNum) countNum.innerText = r * 8;
+          if (r >= 8) clearInterval(chessInterval);
+        }, 180);
+      }
+    }
+
+    /* Slide 3: Left-to-Right Light Trace Visualizer */
+    function initTraceGrid() {
+      const container = document.getElementById('trace-grid-container');
+      if (!container) return;
+      container.innerHTML = '';
+      for (let r = 0; r < 3; r++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "flex items-center gap-3";
+        
+        const rowLabel = document.createElement('div');
+        rowLabel.className = "font-code text-xs font-bold text-slate-400 w-9 text-right";
+        rowLabel.id = `row-head-${r}`;
+        rowLabel.innerText = `Row ${r}`;
+        rowDiv.appendChild(rowLabel);
+
+        for (let c = 0; c < 3; c++) {
+          const cell = document.createElement('div');
+          cell.className = "trace-cell";
+          cell.id = `trace-${r}-${c}`;
+          cell.innerText = `${r},${c}`;
+          rowDiv.appendChild(cell);
+        }
+        container.appendChild(rowDiv);
+      }
+    }
+
+    let isTracing = false;
+    function startLightTraceAnimation() {
+      if (isTracing) return;
+      isTracing = true;
+      let r = 0;
+      let c = 0;
+
+      const interval = setInterval(() => {
+        document.querySelectorAll('.trace-cell').forEach(el => el.className = 'trace-cell');
+        document.querySelectorAll('[id^="row-head-"]').forEach(el => el.className = 'font-code text-xs font-bold text-slate-400 w-9 text-right');
+        document.querySelectorAll('[id^="col-head-"]').forEach(el => el.className = 'w-9 text-center font-code text-xs text-slate-400 font-bold');
+
+        const activeRowHead = document.getElementById(`row-head-${r}`);
+        const activeColHead = document.getElementById(`col-head-${c}`);
+        if (activeRowHead) activeRowHead.className = 'font-code text-xs font-extrabold text-brand-yellow w-9 text-right';
+        if (activeColHead) activeColHead.className = 'w-9 text-center font-code text-xs font-extrabold text-brand-yellow';
+
+        const currentCell = document.getElementById(`trace-${r}-${c}`);
+        if (currentCell) currentCell.className = 'trace-cell active-inner';
+
+        const outerBadge = document.getElementById('outer-loop-badge');
+        const innerBadge = document.getElementById('inner-loop-badge');
+        const statusText = document.getElementById('trace-status-text');
+
+        if (outerBadge) outerBadge.innerText = `row = ${r}`;
+        if (innerBadge) innerBadge.innerText = `col = ${c}`;
+        if (statusText) statusText.innerText = `Outer row: ${r} | Inner col: ${c} (Moving left-to-right)`;
+        playSound('pop');
+
+        c++;
+        if (c >= 3) {
+          c = 0;
+          r++;
+        }
+
+        if (r >= 3) {
+          clearInterval(interval);
+          isTracing = false;
+          playSound('correct');
+          if (statusText) statusText.innerText = `Tracing Complete! (3 Rows x 3 Cols = 9 iterations)`;
+        }
+      }, 600);
+    }
+
+    /* Slide 4: Square Simulator */
+    let squareSymbol = "⭐";
+
+    function setSquareSymbol(sym) {
+      playSound('pop');
+      squareSymbol = sym;
+      document.querySelectorAll('.symbol-btn').forEach(btn => btn.classList.replace('border-brand-purple', 'border-brand-purple-pale'));
+      updateSquareSimulation();
+    }
+
+    function updateSquareSimulation() {
+      const rowsInput = document.getElementById('square-rows-input');
+      const colsInput = document.getElementById('square-cols-input');
+
+      const rows = rowsInput ? parseInt(rowsInput.value) || 4 : 4;
+      const cols = colsInput ? parseInt(colsInput.value) || 4 : 4;
+
+      const codeRow = document.getElementById('code-row-val');
+      const codeCol = document.getElementById('code-col-val');
+      const codeSym = document.getElementById('code-sym-val');
+      const dimLabel = document.getElementById('square-dim-label');
+
+      if (codeRow) codeRow.innerText = rows;
+      if (codeCol) codeCol.innerText = cols;
+      if (codeSym) codeSym.innerText = squareSymbol;
+      if (dimLabel) dimLabel.innerText = `${rows} Rows x ${cols} Cols`;
+
+      let outputStr = "";
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          outputStr += squareSymbol + " ";
+        }
+        outputStr += "\n";
+      }
+
+      const termOut = document.getElementById('square-terminal-output');
+      if (termOut) termOut.innerText = outputStr;
+    }
+
+    /* Slide 5: Sandbox Challenges */
+    const sandboxSquareDone = new Set();
+    function testSandboxSquareTask(btn, idx) {
+      playSound('correct');
+      sandboxSquareDone.add(idx);
+      btn.classList.add('!bg-emerald-600', '!text-white', '!border-emerald-700');
+      const icon = btn.querySelector('.status-icon');
+      if (icon) icon.className = 'fa-solid fa-circle-check text-lg text-white';
+
+      const progressNum = document.getElementById('c1-progress-num');
+      if (progressNum) progressNum.innerText = sandboxSquareDone.size;
+
+      const feedback = document.getElementById('sandbox-square-feedback');
+      if (feedback) {
+        feedback.className = "mt-3 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-center font-bold text-base text-emerald-900";
+        feedback.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Checked off pattern challenge task in Sandbox!`;
+      }
+
+      if (sandboxSquareDone.size === 3) {
+        triggerConfetti();
+      }
+    }
+
+    /* Slide 6: Triangle Simulator & Trace */
+    function updateTriangleSimulation() {
+      const slider = document.getElementById('tri-height-slider');
+      const height = slider ? parseInt(slider.value) : 4;
+
+      const triNum = document.getElementById('tri-height-num');
+      const codeH = document.getElementById('code-tri-h');
+      const badge = document.getElementById('tri-status-badge');
+
+      if (triNum) triNum.innerText = height;
+      if (codeH) codeH.innerText = height + 1;
+      if (badge) badge.innerText = `Height: ${height}`;
+
+      let outputStr = "";
+      for (let r = 1; r <= height; r++) {
+        for (let c = 1; c <= r; c++) {
+          outputStr += "⭐ ";
+        }
+        outputStr += "\n";
+      }
+      const termOut = document.getElementById('triangle-terminal-output');
+      if (termOut) termOut.innerText = outputStr;
+    }
+
+    let triTraceInterval = null;
+    function traceTriangleRowStep() {
+      if (triTraceInterval) clearInterval(triTraceInterval);
+      const slider = document.getElementById('tri-height-slider');
+      const height = slider ? parseInt(slider.value) : 4;
+      const outputElem = document.getElementById('triangle-terminal-output');
+      if (outputElem) outputElem.innerText = "";
+
+      let r = 1;
+      triTraceInterval = setInterval(() => {
+        let rowStr = "";
+        for (let c = 1; c <= r; c++) {
+          rowStr += "⭐ ";
+        }
+        if (outputElem) outputElem.innerText += rowStr + "\n";
+        
+        const badge = document.getElementById('tri-status-badge');
+        if (badge) badge.innerText = `Tracing Row ${r} of ${height} (inner col loops ${r} times)`;
+        playSound('pop');
+
+        r++;
+        if (r > height) {
+          clearInterval(triTraceInterval);
+          playSound('correct');
+          if (badge) badge.innerText = `Tracing Complete!`;
+        }
+      }, 650);
+    }
+
+    /* Slide 7: Inverted Triangle Brainstorming */
+    function checkBrainstormTri1(btn, isCorrect) {
+      document.querySelectorAll('.bt1-opt').forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+      }
+    }
+
+    function checkBrainstormTri2(btn, isCorrect) {
+      document.querySelectorAll('.bt2-opt').forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+      }
+    }
+
+    function checkBrainstormTri3(btn, isCorrect) {
+      document.querySelectorAll('.bt3-opt').forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+      }
+    }
+
+    function confirmInvertedSandboxDone() {
+      playSound('correct');
+      triggerConfetti();
+      const banner = document.getElementById('inverted-sandbox-banner');
+      if (banner) {
+        banner.className = "mt-3 p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-center font-bold text-base text-emerald-900";
+        banner.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Excellent! Inverted triangle nested loop executed in Sandbox!`;
+      }
+    }
+
+    /* Slide 8: Number Triangle Brainstorming */
+    function checkNumBrainstorm1(btn, isCorrect) {
+      document.querySelectorAll('.nb1-opt').forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+      }
+    }
+
+    function checkNumBrainstorm2(btn, isCorrect) {
+      document.querySelectorAll('.nb2-opt').forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+      }
+    }
+
+    function confirmNumTriangleDone() {
+      playSound('correct');
+      triggerConfetti();
+      const banner = document.getElementById('number-tri-banner');
+      if (banner) {
+        banner.className = "mt-3 p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-center font-bold text-base text-emerald-900";
+        banner.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-2"></i> Fantastic! Number triangle pattern completed in your Sandbox!`;
+      }
+    }
+
+    /* Slide 9: Final Revision */
+    let fqDone = { 1: false, 2: false, 3: false };
+
+    function checkFinalRevision(qNum, isCorrect, btn) {
+      const opts = btn.parentElement.querySelectorAll('button');
+      opts.forEach(b => b.classList.remove('!bg-emerald-600', '!text-white', '!bg-brand-coral'));
+
+      if (isCorrect) {
+        playSound('correct');
+        btn.classList.add('!bg-emerald-600', '!text-white');
+        fqDone[qNum] = true;
+      } else {
+        playSound('wrong');
+        btn.classList.add('!bg-brand-coral', '!text-white');
+        fqDone[qNum] = false;
+      }
+
+      if (fqDone[1] && fqDone[2] && fqDone[3]) {
+        triggerConfetti();
+        const bannerText = document.getElementById('final-banner-text');
+        if (bannerText) bannerText.innerHTML = `🌟 Perfect! You have mastered Python Nested Loops!`;
+      }
+    }
+
+    /* Confetti Canvas Animation */
+    function triggerConfetti() {
+      playSound('correct');
+      const canvas = document.getElementById('confetti-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#5E48C4', '#FFD071', '#59E4FB', '#ED5661', '#7B6ED4'];
+
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 10 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: Math.random() * 3 + 2,
+          vx: Math.random() * 2 - 1,
+          rot: Math.random() * 360
+        });
+      }
+
+      let frame = 0;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          p.rot += 2;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        frame++;
+        if (frame < 100) {
+          requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      animate();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+
+    window.onload = () => {
+      initNavigation();
+      initChessboard();
+      initTraceGrid();
+      updateSquareSimulation();
+      updateTriangleSimulation();
+      updateSlideDisplay();
+    };
+  </script>
+</body>
+</html>
